@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="v-container">
+        <div>
+            <img src="{{ image.url }}" style="max-width: 400px; min-width: 50px;" alt="">
+            <!-- <br/> -->
+            <hr/>
+        </div>
+        <div class="guest-details">
+            <p>Name: {{guest.name}}</p>
+            <a href="#">Allow Entrance</a>
+        </div>
+
+    </div>
+{% endblock %}
