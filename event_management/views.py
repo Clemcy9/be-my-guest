@@ -1,6 +1,10 @@
+import os
 from threading import Thread
+from django.conf import settings
+from django.http import Http404, FileResponse
 from django.shortcuts import render, HttpResponsePermanentRedirect, redirect
 from django.forms import modelformset_factory
+
 from .models import Event, Guest, SignUpGuest, generate_qrcode, generate_zip
 from .forms import AddGuestForm, CreateEventForm
 
@@ -13,8 +17,8 @@ from .forms import AddGuestForm, CreateEventForm
 #       - Update
 #       - Delete
 
-# create worker thread
-image_maker = Thread(target=generate_qrcode, daemon=True, args=[])
+# # create worker thread
+# image_maker = Thread(target=generate_qrcode, daemon=True, args=[])
 
 def create_event(request):
     form = CreateEventForm()
@@ -65,9 +69,9 @@ def add_guests(request, event_id):
                     instance.name
                 )
                 images.append(image)
-            generate_zip(images)
+            generate_zip(images,event.name +'.zip')
 
-            return render(request, 'guests/add_guest.html')
+            return redirect('event_management:download_invites',instance.event.name)
     else:
         guest_formset = GuestFormset(queryset=Guest.objects.none())
         return render(request, 'guests/add_guest.html',{'formset':guest_formset})
@@ -96,3 +100,11 @@ def edit_event(request, event_id):
     else:
         guest_formset = GuestFormset(queryset=Guest.objects.filter(id=event_id))
         return render(request, 'guests/add_guest.html',{'formset':guest_formset})
+
+def download_invites(request, zip_filename):
+    zip_path = os.path.join(settings.MEDIA_ROOT,'generated_zips/' + zip_filename+'.zip')
+    print(f'[views-download_invites] zip_path:{zip_path}')
+    if not os.path.exists(zip_path):
+        raise Http404("file not found")
+    
+    return FileResponse(open(zip_path, 'rb'), as_attachment=True, filename=zip_filename)

@@ -7,6 +7,22 @@ class CreateEventForm(forms.ModelForm):
         fields = '__all__'
 
         widgets = {
+            'name': forms.DateInput(attrs={
+                'class':'form-control',
+                'placeholder':'Event Name'
+            }),
+            'flier': forms.FileInput(attrs={
+                'class':'form-control',
+                'type':'file'
+            }),
+            'expected_no_of_guests': forms.DateInput(attrs={
+                'class':'form-control',
+                'placeholder':'number of invitee'
+            }),
+            'venue': forms.DateInput(attrs={
+                'class':'form-control',
+                'placeholder':'venue'
+            }),
             'date': forms.DateInput(attrs={
                 'class':'form-control',
                 'type':'date'

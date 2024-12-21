@@ -43,18 +43,29 @@ class CheckInLog(models.Model):
 class GeneratedInvite(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
     no_of_guest = models.IntegerField()
+    invite_zip_download_url = models.URLField(max_length=100, blank=True, null=True)
 
-def generate_zip(images):
+# uses buffer memory and has option for direct file
+def generate_zip(images, zipname):
     print(f'[models-generate_zip] called, images:{images}')
     zip_buffer = BytesIO()
 
-    with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
-        for image_path in images:
-            filename = os.path.basename(image_path)
-            zip_file.write(image_path, arcname=filename)
+    if not zipname:
+        with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+            for image_path in images:
+                filename = os.path.basename(image_path)
+                zip_file.write(image_path, arcname=filename)
 
-            zip_buffer.seek(0)
+                zip_buffer.seek(0)
             return zip_buffer
+    else:
+        zip_path = os.path.join(settings.MEDIA_ROOT,'generated_zips/'+zipname)
+        with zipfile.ZipFile(zip_path, 'w') as zip_file:
+            for image_path in images:
+                filename = os.path.basename(image_path)
+                zip_file.write(image_path, arcname=filename)
+
+            return zip_path
         
 def send_email_with_zip(user_email, zip_buffer):
     email = EmailMessage(
@@ -94,7 +105,7 @@ def generate_qrcode(main_flier, url_link, guest_name):
 
     # save image with guest surname
     location = 'media/generated_invites/'
-    image_name = location + guest_name.split('.')[-1].strip().replace(' ','_')+'.jpg'
+    image_name = location + guest_name.split('.')[-1].strip().replace(' ','_')+'.'+main_flier.split('.')[-1]
     pic1.save(image_name)
     return image_name
  
